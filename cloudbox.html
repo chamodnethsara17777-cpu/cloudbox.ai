@@ -1,0 +1,768 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudBox Storage</title>
+<style>
+:root {
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-solid: #ffffff;
+  --text: #171717;
+  --muted: #64748b;
+  --border: rgba(255, 255, 255, 0.4);
+  --border-hover: rgba(255, 255, 255, 0.8);
+  --accent: #09090b;
+  --accent-hover: #27272a;
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+  --primary-pink: #e11d48;
+  --radius: 12px;
+  --transition: all 0.2s ease;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: 
+    radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.35) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(244, 63, 94, 0.3) 0px, transparent 50%),
+    radial-gradient(at 20% 80%, rgba(168, 85, 247, 0.35) 0px, transparent 50%),
+    radial-gradient(at 80% 90%, rgba(14, 165, 233, 0.25) 0px, transparent 50%),
+    #f8fafc;
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  padding: 40px 20px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.card {
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
+}
+
+.auth {
+  max-width: 380px;
+  margin: 40px auto 0;
+}
+
+h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 16px 0 6px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+  outline: none;
+  transition: var(--transition);
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+  background: #ffffff;
+}
+
+button, .upload-label {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+button:hover, .upload-label:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text);
+  border-color: #cbd5e1;
+}
+
+.secondary:hover {
+  background: #ffffff;
+  border-color: var(--border-hover);
+}
+
+.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: #fca5a5;
+}
+
+.danger:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
+
+.full {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Profile Picture & Ring Animation Styles */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.avatar-ring-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: 90px;
+  transform: rotate(-90deg);
+}
+
+.avatar-ring-svg circle {
+  fill: none;
+  stroke: var(--primary-pink);
+  stroke-width: 5;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 251;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.avatar-ring-svg.animate circle {
+  stroke-dashoffset: 0;
+}
+
+.avatar-img-container {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 2rem;
+  color: var(--muted);
+}
+
+.upload {
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius);
+  text-align: center;
+  padding: 32px 16px;
+  transition: var(--transition);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.upload:hover {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.file:last-child {
+  border-bottom: none;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.name strong {
+  font-weight: 500;
+}
+
+small, .muted {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+#authMessage {
+  font-size: 0.8125rem;
+  color: var(--danger);
+  margin-top: 8px;
+}
+
+#status {
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 16px;
+}
+
+#shareResult {
+  display: none;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+#shareUrl, #pasteLink {
+  margin: 8px 0;
+}
+
+.share-group {
+  display: flex;
+  gap: 8px;
+}
+
+.share-group input {
+  flex: 1;
+}
+
+.download-box {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  padding: 32px 0;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>CloudBox</h1>
+  <p>Minimalist Personal Storage</p>
+</header>
+
+<main>
+<section id="auth" class="card auth">
+  <h2 id="authTitle">Sign In</h2>
+  <form id="authForm">
+    <label for="email">Email address</label>
+    <input id="email" type="email" required placeholder="name@example.com">
+    <label for="password">Password</label>
+    <input id="password" type="password" minlength="6" required placeholder="••••••••">
+    <button class="full" id="submitBtn" type="submit">Sign In</button>
+  </form>
+  <p id="authMessage"></p>
+  <button id="switchBtn" class="secondary full" type="button">Create Account</button>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="card flex-between">
+    <div class="profile-section">
+      <div class="avatar-wrapper">
+        <svg class="avatar-ring-svg" id="avatarRingSvg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40"></circle>
+        </svg>
+        <div class="avatar-img-container">
+          <img id="avatarImg" class="hidden" alt="Profile">
+          <div id="avatarPlaceholder" class="avatar-placeholder">👤</div>
+        </div>
+      </div>
+      <div>
+        <h2 style="margin:0 0 4px 0">Dashboard</h2>
+        <small>Signed in as <strong id="userEmail"></strong></small>
+        <div style="margin-top: 8px;">
+          <label class="upload-label secondary" for="avatarPicker" style="padding: 4px 10px; font-size: 0.75rem;">Change Picture</label>
+          <input id="avatarPicker" type="file" accept="image/*" hidden>
+        </div>
+      </div>
+    </div>
+    <button id="logoutBtn" class="danger">Sign Out</button>
+  </div>
+
+  <div class="card">
+    <h2>Upload Files</h2>
+    <div class="upload">
+      <label class="upload-label" for="picker">Choose Files</label>
+      <input id="picker" type="file" multiple hidden>
+      <p class="muted" style="margin: 12px 0 0 0">Maximum 2 GB per file</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex-between" style="margin-bottom: 12px;">
+      <h2 style="margin: 0">My Files</h2>
+      <span id="usage" class="muted" style="font-size: 0.8125rem;">0 files</span>
+    </div>
+    <div id="files"></div>
+    <p id="empty" class="muted" style="margin: 8px 0 0 0; font-size: 0.875rem;">No files uploaded yet.</p>
+  </div>
+
+  <div class="card">
+    <h2>Share Files</h2>
+    <label for="expiry">Link expiration</label>
+    <select id="expiry">
+      <option value="300">5 minutes</option>
+      <option value="3600">1 hour</option>
+      <option value="86400">24 hours</option>
+    </select>
+
+    <div id="shareResult">
+      <small>Your shared file link:</small>
+      <div class="share-group">
+        <input id="shareUrl" readonly>
+        <button id="copyBtn" class="secondary" type="button">Copy</button>
+      </div>
+    </div>
+
+    <!-- PASTE LINK AND DOWNLOAD AREA -->
+    <div class="download-box">
+      <h3>Download a Shared File</h3>
+      <p class="muted" style="margin: 0 0 12px 0; font-size: 0.8125rem;">Paste a CloudBox shared link below to download its file.</p>
+      <div class="share-group">
+        <input id="pasteLink" type="url" placeholder="Paste shared link here">
+        <button id="downloadLinkBtn" type="button">Download</button>
+      </div>
+      <p id="downloadMessage" role="status" class="muted" style="margin: 8px 0 0 0; font-size: 0.8125rem;"></p>
+    </div>
+  </div>
+</section>
+
+<p id="status" role="status"></p>
+<footer>CloudBox</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const DB_NAME = "CloudBoxIndexedDB";
+const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB
+
+let idb = null;
+let currentUser = null;
+let isSignup = false;
+let shareTimer = null;
+
+// Initialize IndexedDB
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains("accounts")) db.createObjectStore("accounts", { keyPath: "email" });
+      if (!db.objectStoreNames.contains("files")) {
+        const fileStore = db.createObjectStore("files", { keyPath: "id" });
+        fileStore.createIndex("owner", "owner", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("profiles")) db.createObjectStore("profiles", { keyPath: "email" });
+      if (!db.objectStoreNames.contains("shares")) db.createObjectStore("shares", { keyPath: "token" });
+    };
+    req.onsuccess = (e) => {
+      idb = e.target.result;
+      resolve(idb);
+    };
+    req.onerror = () => reject("Failed to open IndexedDB database");
+  });
+}
+
+function idbCmd(storeName, mode, callback) {
+  return new Promise((resolve, reject) => {
+    const tx = idb.transaction(storeName, mode);
+    const store = tx.objectStore(storeName);
+    const req = callback(store);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function showAuth() {
+  $("auth").classList.remove("hidden");
+  $("dashboard").classList.add("hidden");
+  $("password").value = "";
+  $("authMessage").textContent = "";
+}
+
+function playAvatarAnimation() {
+  const ring = $("avatarRingSvg");
+  ring.classList.remove("animate");
+  void ring.offsetWidth;
+  ring.classList.add("animate");
+}
+
+async function renderProfile() {
+  try {
+    const prof = await idbCmd("profiles", "readonly", s => s.get(currentUser));
+    if (prof && prof.data) {
+      $("avatarImg").src = prof.data;
+      $("avatarImg").classList.remove("hidden");
+      $("avatarPlaceholder").classList.add("hidden");
+    } else {
+      $("avatarImg").src = "";
+      $("avatarImg").classList.add("hidden");
+      $("avatarPlaceholder").classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function showDashboard() {
+  $("auth").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("userEmail").textContent = currentUser;
+  await renderProfile();
+  playAvatarAnimation();
+  await renderFiles();
+}
+
+$("switchBtn").onclick = () => {
+  isSignup = !isSignup;
+  $("authTitle").textContent = isSignup ? "Create Account" : "Sign In";
+  $("submitBtn").textContent = isSignup ? "Create Account" : "Sign In";
+  $("switchBtn").textContent = isSignup ? "Back to Sign In" : "Create Account";
+  $("authMessage").textContent = "";
+};
+
+$("authForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const email = $("email").value.trim().toLowerCase();
+  const pass = $("password").value;
+  if (!email || !pass) return;
+
+  try {
+    const existing = await idbCmd("accounts", "readonly", s => s.get(email));
+
+    if (isSignup) {
+      if (existing) {
+        $("authMessage").style.color = "var(--danger)";
+        $("authMessage").textContent = "Account already exists. Please sign in.";
+        return;
+      }
+      await idbCmd("accounts", "readwrite", s => s.put({ email, pass }));
+      currentUser = email;
+      isSignup = false;
+      $("authTitle").textContent = "Sign In";
+      $("submitBtn").textContent = "Sign In";
+      $("switchBtn").textContent = "Create Account";
+      $("authMessage").textContent = "";
+      await showDashboard();
+      return;
+    }
+
+    if (!existing || existing.pass !== pass) {
+      $("authMessage").style.color = "var(--danger)";
+      $("authMessage").textContent = "Incorrect email or password.";
+      return;
+    }
+
+    currentUser = email;
+    $("authMessage").textContent = "";
+    await showDashboard();
+  } catch (err) {
+    $("authMessage").style.color = "var(--danger)";
+    $("authMessage").textContent = "Database error occurred.";
+  }
+};
+
+$("avatarPicker").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const data = await new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => resolve(null);
+    r.readAsDataURL(file);
+  });
+  if (!data) return;
+  await idbCmd("profiles", "readwrite", s => s.put({ email: currentUser, data }));
+  await renderProfile();
+  playAvatarAnimation();
+  e.target.value = "";
+};
+
+function clearShareUI() {
+  clearTimeout(shareTimer);
+  $("shareResult").style.display = "none";
+  $("shareUrl").value = "";
+}
+
+$("logoutBtn").onclick = () => {
+  clearShareUI();
+  currentUser = null;
+  $("files").replaceChildren();
+  $("picker").value = "";
+  $("pasteLink").value = "";
+  $("downloadMessage").textContent = "";
+  $("status").textContent = "Signed out.";
+  showAuth();
+};
+
+async function getFiles() {
+  return new Promise((resolve) => {
+    const tx = idb.transaction("files", "readonly");
+    const index = tx.objectStore("files").index("owner");
+    const req = index.getAll(currentUser);
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+}
+
+async function renderFiles() {
+  const files = await getFiles();
+  $("files").replaceChildren();
+  $("empty").classList.toggle("hidden", files.length > 0);
+  let total = 0;
+
+  files.forEach(file => {
+    total += file.size;
+    const row = document.createElement("div");
+    row.className = "file";
+
+    const name = document.createElement("div");
+    name.className = "name";
+    const strong = document.createElement("strong");
+    strong.textContent = file.name;
+    const info = document.createElement("small");
+    info.textContent = " · " + (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    name.append(strong, info);
+
+    const download = document.createElement("button");
+    download.textContent = "Download";
+    download.type = "button";
+    download.onclick = () => downloadBlob(file.blob, file.name);
+
+    const share = document.createElement("button");
+    share.className = "secondary";
+    share.textContent = "Share";
+    share.type = "button";
+    share.onclick = () => createShare(file);
+
+    const del = document.createElement("button");
+    del.className = "danger";
+    del.textContent = "Delete";
+    del.type = "button";
+    del.onclick = async () => {
+      if (!confirm("Delete this file?")) return;
+      await idbCmd("files", "readwrite", s => s.delete(file.id));
+      clearShareUI();
+      await renderFiles();
+    };
+
+    row.append(name, download, share, del);
+    $("files").append(row);
+  });
+
+  $("usage").textContent = files.length + " files · " + (total / (1024 * 1024)).toFixed(2) + " MB";
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("picker").onchange = async (e) => {
+  const selectedFiles = Array.from(e.target.files || []);
+  for (const file of selectedFiles) {
+    if (file.size > MAX_FILE_SIZE) {
+      $("status").textContent = file.name + " exceeds the 2 GB limit.";
+      continue;
+    }
+    
+    $("status").textContent = "Saving " + file.name + "...";
+    
+    const fileRecord = {
+      id: crypto.randomUUID(),
+      owner: currentUser,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      blob: file // Directly store Blob in IndexedDB
+    };
+
+    try {
+      await idbCmd("files", "readwrite", s => s.put(fileRecord));
+      $("status").textContent = file.name + " saved successfully.";
+    } catch (err) {
+      $("status").textContent = "Error storing file. Storage quota might be exceeded.";
+    }
+  }
+  await renderFiles();
+  e.target.value = "";
+};
+
+async function createShare(file) {
+  clearShareUI();
+  const token = crypto.randomUUID();
+  const expiresAt = Date.now() + Number($("expiry").value) * 1000;
+
+  const shareRecord = {
+    token,
+    name: file.name,
+    type: file.type,
+    blob: file.blob,
+    expiresAt
+  };
+
+  try {
+    await idbCmd("shares", "readwrite", s => s.put(shareRecord));
+    const url = new URL(location.href);
+    url.hash = "share=" + token;
+    $("shareUrl").value = url.href;
+    $("shareResult").style.display = "block";
+    $("status").textContent = "Link created. Expires " + new Date(expiresAt).toLocaleTimeString();
+
+    shareTimer = setTimeout(async () => {
+      await idbCmd("shares", "readwrite", s => s.delete(token));
+      clearShareUI();
+      $("status").textContent = "Share link expired.";
+    }, Number($("expiry").value) * 1000);
+  } catch (err) {
+    $("status").textContent = "Failed to create share link.";
+  }
+}
+
+$("copyBtn").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($("shareUrl").value);
+    $("status").textContent = "Link copied.";
+  } catch {
+    $("shareUrl").select();
+    $("status").textContent = "Copy the selected link manually.";
+  }
+};
+
+$("downloadLinkBtn").onclick = async () => {
+  const input = $("pasteLink").value.trim();
+  $("downloadMessage").textContent = "";
+  let token;
+  try {
+    const u = new URL(input);
+    token = new URLSearchParams(u.hash.slice(1)).get("share");
+  } catch {
+    $("downloadMessage").textContent = "Please paste a valid CloudBox share link.";
+    return;
+  }
+  if (!token) {
+    $("downloadMessage").textContent = "No share token found in this link.";
+    return;
+  }
+
+  try {
+    const file = await idbCmd("shares", "readonly", s => s.get(token));
+    if (!file || Date.now() >= file.expiresAt) {
+      if (file) await idbCmd("shares", "readwrite", s => s.delete(token));
+      $("downloadMessage").textContent = "Link is invalid or expired.";
+      return;
+    }
+    downloadBlob(file.blob, file.name);
+    $("downloadMessage").textContent = "Downloading: " + file.name;
+  } catch {
+    $("downloadMessage").textContent = "Error retrieving shared file.";
+  }
+};
+
+initDB().then(() => showAuth());
+</script>
+</body>
+</html>
